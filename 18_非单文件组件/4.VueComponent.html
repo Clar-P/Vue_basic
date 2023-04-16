@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VueComponent</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        关于 VueComponent:
+            1.school组件本质是一个名为 VueComponent 的构造函数，且不是程序员定义的，是 Vue.extend 生成的
+
+            2.我们只需要写 <school/> 或 <school></school> .Vue 解析时会帮我们创建school组件的实例对象
+                即 Vue帮我们执行的： new VueComponent(options).
+
+            3.特别注意：每次调用 Vue.extend, 返回的都是一个全新的 VueComponent !!!
+
+            4.关于 this指向：
+                （1）。组件配置中：
+                    data 函数、methods中的函数、watch中的函数、computed中的函数 他们的 this均是【VueComponent实例对象】
+                （2）。new Vue()配置中：
+                    data 函数、methods中的函数、watch中的函数、computed中的函数 他们的 this均是【Vue实例】
+
+            5.VueComponent 的实例对象，以后简称 vc（也可称之为：组件实例对象）
+                Vue的实例对象，以后简称 vm
+    -->
+    <div id="root">
+        <school></school>
+        <hello></hello>
+    </div>
+</body>
+
+<script>
+    Vue.config.productionTip = false
+
+    // 自定义school组件
+    const school = Vue.extend({
+        name:'school',
+        template:`
+            <div>
+                <h2>学校名称:{{schoolName}}</h2>
+                <h2>学校地址:{{address}}</h2>
+                <button @click='showName'>点我</button>
+            </div>
+        `,
+        data(){
+            return {
+                schoolName:'云南大学',
+                address:'昆明'    
+            }
+        },
+        methods:{
+            showName(){
+                console.log('@',this);
+            }
+        }
+    })
+
+    // 定义test组件
+    const test = Vue.extend({
+        template:`
+            <h2>建筑学</h2>
+        `,
+    })
+
+
+    // 定义hello组件
+    const hello = Vue.extend({
+        template:`
+            <div>
+                <h2>{{msg}}</h2>
+                <test></test>
+            </div>
+        `,
+        data(){
+            return {
+                msg:'云大一百年'
+            }
+        },
+        components:{test}
+    })
+
+    
+    console.log('@',school);
+
+    // 创建vm
+    const vm = new Vue({
+        el:"#root",
+        components:{
+            school,
+            hello
+        }
+    })
+</script>
+</html>
