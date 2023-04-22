@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1  class="title">Nihao</h1>
     <Student></Student>
     <hr>
     <School></School>
@@ -17,10 +16,4 @@ export default {
     components:{Student,School}
 }
 </script>
-
-<style>
-  .title{
-    background-color: red;
-  }
-</style>
 
