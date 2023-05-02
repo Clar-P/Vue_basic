@@ -13,7 +13,7 @@ import Item from './Item'
 export default {
     name:'List',
     components:{Item},
-    props:['todos']
+    props:['todos',]
 }
 </script>
 

@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import pubsub from 'pubsub-js'
 import MyHeader from './components/MyHeader.vue'
 import List from './components/List.vue'
 import MyFooter from './components/MyFooter.vue'
@@ -35,14 +34,8 @@ export default {
                 if(todo.id === id) todo.done = !todo.done
             })
         },
-        // 更新一个todo
-        updateTodo(id,title){
-            this.todos.forEach((todo) => {
-                if(todo.id === id) todo.title = title
-            })
-        },
         // 删除一个id
-        deleteTodo(_,id){
+        deleteTodo(id){
             this.todos = this.todos.filter(todo => todo.id !== id)
         },
         // 全选或取消全选
@@ -69,13 +62,11 @@ export default {
     },
     mounted(){
         this.$bus.$on('checkTodo',this.checkTodo)
-        this.$bus.$on('updateTodo',this.updateTodo)
-        this.pubId = pubsub.subscribe('deleteTodo',this.deleteTodo)
+        this.$bus.$on('deleteTodo',this.deleteTodo)
     },
     beforeDestroy(){
         this.$bus.off('checkTodo')
-        this.$bus.off('updateTodo')
-        pubsub.unsunscribe(this.pubId)
+        this.$bus.off('deleteTodo')
     }
 }
 </script>
@@ -103,13 +94,6 @@ export default {
         color: #fff;
         background-color: #da4f49;
         border:1px solid #bd362f
-    }
-
-    .btn-edit {
-        color: #fff;
-        background-color: skyblue;
-        border:1px solid rgb(91, 162, 190);
-        margin-right:5px
     }
 
     .btn-danger:hover {

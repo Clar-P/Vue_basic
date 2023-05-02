@@ -4,20 +4,13 @@
             <input type="checkbox" :checked="todo.done" @change="handleCheck(todo.id)">
             <!-- 如下代码也能实现代码，但是不太推荐，因为有点违反原则，因为修改了 props -->
             <!-- <input type="checkbox" v-model="todo.done">  不建议用双向绑定来修改 props-->
-            <span v-show="!todo.isEdit">{{todo.title}}</span>
-            <input 
-                type="text" 
-                v-show="todo.isEdit" 
-                :value="todo.title" 
-                @blur="handleBlur(todo,$event)">
+            <span>{{todo.title}}</span>
         </label>
         <button class="btn btn-danger" @click="handleDelete(todo.id)">删除</button>
-        <button v-show="!todo.isEdit" class="btn btn-edit" @click="handleEdit(todo)">编辑</button>
     </li>
 </template>
 
 <script>
-import pubsub from 'pubsub-js'
 export default {
     name:'Item',
     // 声明接收todo对象
@@ -33,23 +26,8 @@ export default {
         handleDelete(id){
             if(confirm('确定删除吗?')){
                 // this.deleteTodo(id)
-                // this.$bus.$emit('deleteTodo',id)
-                pubsub.publish('deleteTodo',id)
+                this.$bus.$emit('deleteTodo',id)
             }
-        },
-        // 编辑
-        handleEdit(todo){
-            if(todo.hasOwnProperty('isEdit')){
-                todo.isEdit = true
-            }else{
-                this.$set(todo,'isEdit',true)
-            }
-        },
-        // 失去焦点回调(真正执行修改逻辑)
-        handleBlur(todo,e){
-            todo.isEdit = false
-            if(!e.target.value.trim()) return alert('输入不能为空')
-            this.$bus.$emit('updateTodo',todo.id,e.target.value)
         }
     }
 }
