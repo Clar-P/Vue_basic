@@ -1,6 +1,5 @@
 <template>
-    <transition name="todo" appear>
-        <li>
+    <li>
         <label>
             <input type="checkbox" :checked="todo.done" @change="handleCheck(todo.id)">
             <!-- 如下代码也能实现代码，但是不太推荐，因为有点违反原则，因为修改了 props -->
@@ -17,7 +16,6 @@
         <button class="btn btn-danger" @click="handleDelete(todo.id)">删除</button>
         <button v-show="!todo.isEdit" class="btn btn-edit" @click="handleEdit(todo)">编辑</button>
     </li>
-    </transition>
 </template>
 
 <script>
@@ -104,21 +102,5 @@ export default {
 
     li:hover button{
         display:block
-    }
-
-    .todo-enter-active{
-        animation: atguigu 0.5s linear;
-    }
-
-    .todo-leave-active{
-        animation: atguigu 0.5s linear reverse;
-    }
-  
-    @keyframes atguigu{
-        from{
-            transform: translateX(100%);
-        }to{
-            transform: translateX(0px);
-        }
     }
 </style>
