@@ -140,3 +140,675 @@
 ​		3.使用 v-model 时要切记： v-model 绑定的值不能是 props 传过来的值，因为 props 是不可以修改的
 
 ​		4.props 传过来的若是对象类型的值，修改对象中的属性时 Vue 不会报错，但不推荐这样做
+
+
+
+## webStorage
+
+​		1.存储内容大小一般支持5MB左右（不同浏览器可能不一样）
+
+​		2.浏览器端通过 Window.sessionStorage 和 Window.localStorage 属性来实现本地存储机制
+
+​		3. 相关API：
+
+​				1. xxxx.Storage.setItem( ‘key’ , ’value’ ) ;
+
+​						该方法接收一个键和值作为参数，会把键值对添加到存储中，如果键名存在，则更新其对应的值
+
+​				2. xxxx.Storage.getItem( ‘person’ )
+
+​						该方法接收一个键名作为参数，返回键名对应的值
+
+​				3. xxxx.Storage.remove( ‘key’ )
+
+​						该方法接收一个键名作为参数，并把该键名从存储中删除
+
+​				4.xxxx.Storage.clear(  )
+
+​						该方法会清空存储中所有的数据
+
+4. 备注：
+	1. SessionStorage 存储的内容会随着浏览器窗口的关闭而消失
+	2. LocalStorage 存储的内容，需要手动清除才会消失
+	3. xxxStorage.getItem(xxx)如果 xxx 对应的 value获取不到，那么 getItem 的返回值是 null
+	4. JSON.parse( null ) 的结果依然是 null
+
+
+
+
+
+## 组件的自定义事件
+
+​		1.一种组件间通信的方式，适用于：**子组件  ==> 父组件**
+
+​		2.使用场景：A是父组件，B是子组件，B想给A传数据，那么就要在A中给B绑定自定义事件（事件的回调在A中）
+
+​		3.绑定自定义事件：
+
+​				1.第一种方式，在父组件中:   `<Demo @atguigu=“test” />`  或  `<Demo v-on:atguigu="test"/>` 
+
+​				2.第二种方式，在父组件中：
+
+```javascript
+		<Demo ref="demo"/>
+		...
+		mounted(){
+			this.$refs.xxx.$on('atguigu',this.test)
+		}
+```
+
+​				3.若想让自定义事件只能触发一次，可以使用 once 修饰符 或 $once 方法。
+
+​		4.触发自定义事件：`this.$emit(‘atguigu’,数据)`
+
+​		5.解绑自定义事件：`this.$off(‘atguigu’)`
+
+​		6.组件上也可以绑定原生DOM事件，需要适应 ==native== 修饰符。
+
+​		7.注意：通过 `this.$refs.xxx.$on(‘atguigu’,回调)` 绑定自定义事件时，回调要么配置在==methods==中，要么用箭头函数，否则this指定会出问题
+
+​			
+
+## 全局事件总线（GlobalEventBus）
+
+​		1.一种组件间通信的方式，适用于任意组件间通信。
+
+​		2.安装全局事件总线：
+
+```javascript
+new Vue({
+	...
+	beforeCreate(){
+		Vue.prototype.$bus = this //安装全局事件总线，$bus就是当前应用的vm
+	},
+	...
+})
+```
+
+​		3.使用全局事件总线:
+
+​				1).接收数据：A组件想接收数据，则在A组件中给 $bus 绑定自定义事件，事件的回调留在 A 组件自身
+
+```javascript
+methods(){
+	demo(data){...}
+}
+...
+mounted(){
+	this.$bus.$on('xxx',this.demo)
+}
+```
+
+​				2).提供数据：`this.$bus.$emit(‘xxx’,数据)`
+
+​		4.最好在 beforeDestory 钩子中，用 $off 去解绑当前组件所用到的事件。
+
+
+
+## 消息订阅与发布（pubsub）
+
+​		1.一种组件间通信的方式，适用于任意组件间通信
+
+​		2.使用步骤：
+
+​				1）安装 pubsub `npm i pubsub-js`
+
+​				2) 引入:  `import pubsub from ‘pubsub-js` 
+
+​				3) 接收数据： A 组件想要接收数据，则在 A 组件中订阅消息，订阅的回调留在 A 组件自身
+
+```javascript
+		methods(){
+			demo(data){...}
+		}
+         ...
+         mounted(){
+             this.pid = pubsub.subscribe('xxx',this.demo) // 订阅消息
+         }
+```
+
+​				4)提供数据: `pubsub .publish(‘xxx’,数据)`
+
+​				5)最好在 beforeDestroy 钩子中，用`pubsub.unsubscribe(pid)` 去取消订阅
+
+
+
+## nextTick
+
+​		1.语法: `this.$nextTick(回调函数)`
+
+​		2.作用: 在下一次 DOM更新结束后执行其指定的回调
+
+​		3.什么时候用：当数据改变后，要基于更新后的新DOM进行某些操作时，要在 nextTick 所指定的回调函数中执行
+
+
+
+## Vue封装的过度与动画
+
+​		1.作用：在插入、更新或移出DOM时，在合适的时候给元素添加样式类名
+
+​		2.图示：
+
+​						![image-20230605211341545](C:\Users\86135\Desktop\image-20230605211341545.png)
+
+​		 3.写法：
+
+​				1）准备好样式
+
+​						元素进入的样式：
+
+​							1、v-enter: 进入的起点
+
+​							2、v-enter-active: 进入的过程中
+
+​							3、v-enter-to: 进入的终点
+
+​						元素离开的样式
+
+​							1、v-leave：离开的起点
+
+​							2、v-leave-active: 离开过程中
+
+​							3、 v-leave-to: 离开的终点
+
+​				2）使用`<transition>`包裹要过渡的元素，并配置name属性:
+
+```javascript
+		<transition name="hello">
+			<h1 v-show="isShow"> 你好啊 </h1>
+		</transition>
+```
+
+      3.    备注：若有多个元素需要过渡，则需要使用：`<transition-group>`, 且每个元素都要指定key值
+
+
+
+## 配置代理
+
+​		在根目录创建一个 Vue.config.js 文件
+
+```js
+		module.exports = {
+            pages:{
+                index:{
+                    entry:'src/main.js' // 配置入口文件
+                }
+            },
+            lintOnsave:false, // 关闭语法检查
+            // 开启代理服务器（方法一有不足，一般用方法二）
+            /*
+            devServer:{
+                proxy:'http://localhost:5000' // 配置自己要访问的服务器，vue会配置一个与浏览器同接口的服务器
+            }
+            */
+       
+```
+
+​		方法一优先：配置简单，请求资源时直接发给前端（8080）即可，
+
+​					缺点：不能配置多个代理，不能灵活的控制是否走代理
+
+​					工作方式：配置了上述代理，当请求了前端不存在的资源时，则该请求会发给服务器（优先匹配前端资源）
+
+​									即在vue-cli 的public或src中有就不会走代理
+
+```js
+		module.export = {
+            // 开启代理服务器（方法二）
+            devServer:{
+                proxy:{
+                    '/api1':{ // 匹配所有以'/api1'开头的请求路径
+                        target:'http://localhost:5000', // 代理目标的基础路径
+                        changeOrigin:true,
+                        pathRewrite:{'^/api1' : ''} //将路径含有/api1部分去除
+                    }，
+                    '/api2':{ // 匹配所有以'api2'开头的请求路径
+                    	target:'http://localhost:5005', // 代理目标的基础路径
+                    changeOrigin :true
+                    pathRecrite:{'^/api2':''}
+                	}
+                }
+            }
+        }
+        
+        
+         /*
+         	changeOrigin 设置为 true 时，服务器收到的请求头中的host值为： localhost:5000
+         	changeOrigin 设置为 false 时，服务器收到的请求头中的host值为： localhost:8080
+         	默认值是 true
+         */
+```
+
+​			方法二：优点：可以配置多个代理，且可以灵活的控制请求是否走代理
+
+​							缺点：配置略微繁琐，请求资源时必须加后缀
+
+## vue-resource
+
+​		是一个请求ajax的。不用了。改成axios
+
+
+
+## 插槽
+
+​		作用：让父组件可以向子组件指定位置插入html结构，也是一种组件间通信的方式，适用于 父组件 ==> 子组件
+
+​		分类：默认插槽、具名插槽、作用域插槽
+
+​		使用方式：
+
+​				1、默认插槽
+
+```js
+		父组件中：
+        	<Category>
+            	<div>html结构</div>
+            </Category>
+		子组件中：
+        	<template>
+            	<div> 
+            		定义插槽
+					<slot>插槽默认内容。。</slot>
+            	</div>
+            </template>
+```
+
+​				2、具名插槽
+
+​						用div包裹可以用 slot写法 ，用 template 包裹则可以用 v-slot:写法
+
+```js
+		父组件中;
+			<Category>
+				<template slot='center'>
+					<slot>html结构1</slot>
+            	</template>
+            	<template v-slot:footer>
+					<slot>html结构2</slot>
+            	</template>
+			</Category>
+		子组件中：
+        		<template>
+            		<div> 
+            			定义插槽
+						<slot nama='center'>插槽默认内容。。</slot>
+						<slot nama='footer'>插槽默认内容。。</slot>
+            		</div>
+            	</template>
+```
+
+​			3、作用域插槽
+
+​					1.理解：数据在组件自身，但根据数据生成的结构需要组件的使用者来决定，（games数据在Category 组件中，但使用数据							所遍历出来的结构由APP组件决定）
+
+​					2、
+
+```js
+			父组件中：
+            		<Category>
+						<template scope="scopedDate"> // scopeDate 名字可以随便取，接收的是子组件传来的全部数据组成的一个对象，所以使用games的时候要.games,也可以用结构赋值{games}
+                            	// scope 接收子组件传来的数据
+                            	<!-- 生成的是ul列表-->
+                            	<ul>
+                            		<li v-for="(g,index) in scopeDate.games" :key="index">{{g}}</li>
+                            	</ul>
+            			 </template>
+					</Category>
+					<Category>
+						<template slot-scope="{{games}}">
+                            	<!-- 生成的是h4标题-->
+                            	<h4 v-for="g in {games}" :key='g'>{{g}}</h4>
+            			 </template>
+					</Category>
+			子组件：
+            		<template>
+                			<div>
+                				<slot :games='games'>
+                                   //  还可以在开始标签中传输一些其他数据如：  msg="hello" ,会和games组成一个对象发送
+                                   //  就像是props父传子倒过来子传父一样
+                                   </slot> 
+                			</div>
+               		</template>
+
+					<script>
+                      		export default{
+								name:'Category',
+                                   props:['titile'],
+                                   // 数据在子组件自身
+                                   data(){
+                                       return {
+                                           games:['王者荣耀','英雄联盟','守望先锋','绝地求生']
+                                       }
+                                   }
+							} 
+                      </script>
+```
+
+
+
+## Vuex （vuex是为了组件间共享数据、状态，四个方法是为了在各自组件中写的方便）
+
+​			vue2用 vuex 的3版本  vue3 用vuex 的4版本
+
+​			安装： npm install vuex@3	引入 ： import Vuex from ‘vuex’			
+
+​			是一个在vue中实现集中式状态（数据） 管理的插件，对vue应用中多个组件的共享状态进行集中式的管理，也是 一种组件间的	
+
+​						通信方式，且适用于任意组件间的通信
+
+​			当多个组件需要共享数据时使用
+
+#### 			1、搭建vuex环境
+
+​					1、创建文件：src 下创建一个 store 文件夹再创建一个 index.js文件 或者创建vuex文件夹创建store.js文件
+
+​					index.js 文件：
+
+```js
+			// 引入vue
+			import Vue from 'vue'
+			// 引入vuex
+			import Vuex from 'vuex'
+			// 使用vuex插件
+			Vue.use(Vuex)
+
+			// 准备actions 对象-响应组件中用户的动作
+			const actions = {}
+            // 准备mutations对象 - 修改state中的数据
+            const mutations = {}
+            // 准备state对象 - 保存具体的数据
+            const states = {}
+            
+			export default new Vuex.Store({
+                actions,
+                mutations,
+                state
+            })
+```
+
+​					2、 在main.js 中创建vm时传入store配置项
+
+```js
+			import Vue from 'vue'
+			// 引入store文件
+			import store from './store/index.js'
+
+			// 创建 cm
+			new Vue({
+                el:'#app',
+                render:h => h(App),
+                store
+            })
+			
+```
+
+#### 2、基本使用：
+
+​					1、初始化数据、配置actions、配置mutations、操作文件store.js
+
+```js
+				// 引入vue
+				import Vue from 'vue'
+				// 引入vuex
+				import Vuex from 'vuex'
+				// 使用vuex
+				Vue.use(Vuex)
+			
+				const actions = {
+                    // 响应组件中加的动作
+                    jia(context,value){
+                        context.commit('JIA',value)
+                    }
+                 }
+                 const mutations = {
+                    // 执行加
+                    JIA(state,value){
+                        state.sum += value
+                    }
+                 }
+                
+                // 初始化数据
+                const state = {
+                    sum:0
+                }
+                // 创建并暴露store
+                export default new Vuex.Store({
+                    actions,
+                    mutations,
+                    state
+                })
+				
+```
+
+​						2、组件中读取vuex中的数据：$store.state.sum  (在模板中使用不用加this，在script标签中如methods中要加this)
+
+​						3、组件中修改vuex中的数据：$store.dispatch(‘action中的方法’ , 数据)  或  $store.commit(‘mutations中的方法名’ , 数据)
+
+​									若没有网络请求或其他业务逻辑，组件中也可以越过actions，即不写dispatch，直接编写commint
+
+​									方法名一般在actions中用的小写，要给mutations的大写
+
+#### 3、getters的使用：
+
+​				概念：当state中的数据需要经过加工后再使用时，可以使用getters加工（像computed属性，但组件内的计算属性不能被其他组							件使用）
+
+​				使用：在store.js中追加getters配置
+
+```js
+		  ...
+		  const getters = {
+		  	 bigSum(state){
+		  	 		return state.sum *10
+		  	 }
+		  }
+		  
+		  // 创建并暴露store 
+		  export default new Vuex.Store({
+		  		... 
+		  		getters
+		  })
+```
+
+​					组件中读取数据：  $store.getters.bigSum
+
+#### 4、四个map方法 (不用也行，四个方法是为了简写组件中的重复部分)
+
+​				最好都用map方法简写，不简写在模块化vuex时要配置很长一串很麻烦
+
+​				mapState 与 mapGetters 方法用来映射state与getters中的数据给组件中的计算属性
+
+​				1、mapState
+
+```js
+			computed:{
+				// 借助mapState 生成计算属性：sum、 school、 subject（ 对象写法，不简写时使用）
+                // 对象里键表示计算属性中要用的属性名，名表示在对应的数据中的键名
+                ...mapState({sum:'sum', school:'school', subject:'subject'}),
+                 // 借助mapState 生成计算属性： sum、school、subject (简写时采用数组写法)
+                 ...mapState(['sum','school','subject']),
+			}
+```
+
+​				2、mapGetters 
+
+```js
+			computed:{
+				// 借助mapGetters 生成计算属性：bigSum(对象写法)
+				...mapGetters({bigSum:'bigSum'})
+				// 借助mapGeeters 生成计算属性：bigSum（数组写法）
+				...mapGetters(['bigSum'])
+			}
+```
+
+​				3、mapActions 用于帮助我们生成与actions对话的方法，即包含：$store.dispatch( xx) 的函数
+
+```js
+			methods:{
+				// 靠mapActions 生成：incrementOdd 、 incrementWait (对象形式)
+				...mapActions({incrementOdd:'jiaOdd',incrementWait:'jiaWait'})
+				
+				// 靠mapActions 生成 ：incrementOdd 、 incrementWait (数组形式)
+				...mapActions(['jiaOdd','jiaWait'])
+			}
+```
+
+​				4、 mapMutations 用于帮助我们生成与mutations对话的方法，即：包含 $store.commit(xxx) 的函数
+
+```js
+			methods:{
+				// 靠mapMutaions 生成：increment 、 decrement （对象形式）
+				...mapMutations({increment:'JIA',decrement:'JIAN'})
+				
+				// 靠mapMutation 生成 : increment、 decrement （数组形式）
+				...mapMutations(['JIA','JIAN'])
+			}
+```
+
+​				mapActions 与 mapMutations 使用时，若需要传递阐述，需要在模板中绑定事件时传递好参数，否则参数时事件对象
+
+#### 5、模块化+命名空间
+
+​		1、 目的：让代码更好维护，让多种数据分类更加明确
+
+​						多个功能类型的数据和方法杂糅在一起一多就麻烦，可以分类将这些数据和状态分类成不同模块类别
+
+​						原来的全部放到一套actions,mutations,state,getters, 模块化就是分成几类，每一类里都有一套
+
+​						每一套里不用担心重名问题，都是局部命名
+
+​		2、修改 store.js
+
+```js
+		const countAbout = {
+			namespaced:true,  // 开启命名空间
+			actions:{
+				//可以直接用context.state，不用担心与其他套冲突
+			},
+			state:{x:1,y:2},
+			mutations:{...},
+			getters:{
+				bigSum(state){
+				return state.sum * 10
+				}
+			}
+		}
+
+		const personAbout = {
+            namespaced:true, // 开启命名空间
+            state:{...},
+            mutations:{...},
+            actions:{...},
+            getters:{...}
+        }
+                     
+        const store = new Vuex.Store({
+            modules:{
+                countAbout,
+                personAbout
+            }
+        })
+                       
+           
+```
+
+​				3、开启命名空间后，组件中读取state数据
+
+```js
+		// 方式一： 自己直接读取
+		this.$store.state.personAbout.list
+		// 方式二： 借助mapState读取：
+		...mapState('countAbout',['sum','school','subject'])
+		// 还要引入其他类的就再写一个，其他map方法也是一样
+		...mapState('personAbout',['personList'])
+```
+
+​			4、 开启命名空间后，组件中读取getters数据
+
+```js
+		// 方式一：自己直接读取
+		return this.$store.getters['personAbout/firstPersonName'] // '类/getters名'
+		// 方式二： 借助mapGetters读取
+		...mapGetters('countAbout',['bigDSum'])  // 前面写类，后面写要的getters名，数组写法,与没有模块化时一样的
+		...mapGetters('countAbout',{bigSum:'bigSum'}) // 对象写法
+```
+
+​			5、开启命名空间后，组件中调用dispatch
+
+```js
+		// 方式一： 自己直接dispatch
+		this.$store.dispatch('personAbout/addPersonWang',person) // 格式与getters一样
+		// 方式二： 借助mapActions
+		...mapActions('countAbout',{incrementOdd:'jiaOdd',incrementWait:'jiaWait'}) // 也可以用数组写法
+```
+
+​			6、 开启命名空间后，组件中调用commit
+
+```js
+		// 方式一： 自己直接commit
+		this.$store.commit('personAbout/ADD_PERSON',person)
+		// 方式二： 借助mapMutations
+		...mapMutations('personAbout',['ADD_PERSON'])  // dispatch和commit传的参数和没用模块化一样直接在绑定事件中传
+		...mapMutations('countAbout',['JIA','JIAN']) // 可commit给不同类
+```
+
+#### 	6、可以拆分index.js
+
+​			全部类都在index.js中写比较杂，可以把不同的类分别定义在不同的js文件中，然后暴露，在index.js中引入就像、
+
+​			如在index.js中：
+
+```js
+import countOptions from './count.js'
+import personOptions from './person.js'
+```
+
+​			分别在两个 js 文件中：
+
+```js
+export default {
+	namespaced:true,
+	state:{...},
+	getters:{...},
+	....
+}
+```
+
+#### 	7、自我总结
+
+​		引入vuex是为了多组件之间共享数据状态及操作，搭建store
+
+​		注意组件中不简写模块和绑定方法时的格式，可以用map方法来简写省略很多事， 包括模块化后的都很方便，即方式二对比方式一
+
+​		要开启了命名空间才能在map方法中直接写分成的类名即可，如 'personAbout'。后面的数组和对象写法不变，很方便！
+
+​		...map前面的... 是es6语法,多自我搭建几次试试
+
+​		不模块化像：      														模块化后像：
+
+```js
+		{  state,								{   state{	a类
+ store	{	mutations,							 {		  {	 b类
+		{	actions,					store	{		  {  ....
+		{   getters								 {	mutations { a 类
+												{			{ b类
+												{   。。。
+```
+
+​			我是根据模块化后不用简写形式觉得的： 格式先  $store 再 getters 再 类名 personAbout
+
+```js
+     return this.$store.getters['personAbout/firstPersonName']
+```
+
+​			但老师是说模块化后是:   那我觉得这样应该是先 $store  再类名  personAbout  再 getters,但不是，管他呢
+
+```js
+	store {   a类 {   state
+		  {		 {	 mutations
+		  {		 {   ...
+		  {	  b类 {  state
+		  {		  {  mutations
+		  {	  	  {  ...
+		  {   ...
+```
+
