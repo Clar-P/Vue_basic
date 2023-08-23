@@ -582,7 +582,7 @@ mounted(){
 
 ​						2、组件中读取vuex中的数据：$store.state.sum  (在模板中使用不用加this，在script标签中如methods中要加this)
 
-​						3、组件中修改vuex中的数据：$store.dispatch(‘action中的方法’ , 数据)  或  $store.commit(‘mutations中的方法名’ , 数据)
+​						3、组件中修改vuex中的数据：```$store.dispatch(‘action中的方法’ , 数据) ``` 或```  $store.commit(‘mutations中的方法名’ , 						数据)```
 
 ​									若没有网络请求或其他业务逻辑，组件中也可以越过actions，即不写dispatch，直接编写commint
 
@@ -664,7 +664,7 @@ mounted(){
 			}
 ```
 
-​				mapActions 与 mapMutations 使用时，若需要传递阐述，需要在模板中绑定事件时传递好参数，否则参数时事件对象
+​				mapActions 与 mapMutations 使用时，若需要传递参数，需要在模板中绑定事件时传递好参数，否则参数时事件对象
 
 #### 5、模块化+命名空间
 
@@ -811,4 +811,445 @@ export default {
 		  {	  	  {  ...
 		  {   ...
 ```
+
+
+
+
+
+## 路由
+
+​			1、理解：一个路由（route）就是一组映射关系（key-value）。多个路由需要路由器（router）进行管理
+
+​			2、前端路由： key是路径、value 是组件
+
+### 	1、基本使用
+
+​			1、安装vue-router., 命令：``` npm i vue-router ```安装的是最新的，vue2需要安装3版本 npm i vue-router@3
+
+​			2、在main.js文件应用插件：``` Vue.use(VueRouter)``` 在```new Vue({   })``` 中添加router配置项 （同 store）
+
+​			3、src下创建 router 文件夹，创建 index.js 文件夹管理 router
+
+​			3、编写router配置项：
+
+```js
+		// 引入VueRouter
+		import VueRouter from 'vue-router'
+		// 引入组件
+		import About from '../components/About'
+		import Home from '../components/Home'
+		
+		// 创建router实例对象，去管理一组一组的路由规则
+		const router = new VueRouter({
+			routes:[
+				{
+					path:'/about',
+					component:About   // component 单数，吃亏写了复数半天找不到问题
+				},
+				{
+					path:'/home',
+					component:Home
+				}
+			]
+		})
+		
+        // 暴露router
+        export default router
+```
+
+​			4、 实现切换 （active-class 可配置高亮样式，即选中状态下的样式）
+
+```vue
+			<router-link active-class="active" to="/about">About</router-link>  // to 用来指定路径位置
+```
+
+​			5、指定展示位置
+
+```vue
+			<router-view> </router-view>
+```
+
+### 	2、几个注意点：
+
+​			1、路由组件通常存放在```pages```文件夹中，一般组件通常存放在```components```文件夹中
+
+​			2、通过切换，“隐藏”了的路由组件，默认是被销毁掉的，需要的时候再去挂载
+
+​			3、每个组件都有自己的``` $store``` 属性，立面存储着自己的路由信息
+
+​			4、整个应用都只有一个router ,可以通过组件的 ```$router``` 属性获取到
+
+### 	3、多级路由（嵌套路由）
+
+​			1、配置路由规则，使用children 配置项：
+
+```js
+		routes:[
+			{
+				path:'/about',
+				component:About
+			},
+			{
+				path:'/home',
+				component:Home,
+				children:[  // 通过children配置子级路由
+					{
+						path:'message',   // 一定不要写：/message
+						component:Message
+					},
+					{
+						path:'news',   // 不要写: /news
+						component:News
+					}
+				]
+			}
+		]
+```
+
+​			2、跳转（要写完整路径）
+
+```vue
+		<router-link to="/home/news"> News </router-link>
+```
+
+### 	4、路由的query参数
+
+​			1、传递参数
+
+```vue
+		<!-- 跳转并携带query参数，to的字符串写法 -->
+		<router-link :to="/home/message/detail?id=666&title=你好">跳转</router-link>
+		<!-- 跳转并携带query参数，to的对象写法 -->
+		<router-link :to="{
+           	path:'/home/message/detail',
+            query；{
+                    id:666,
+                    title:'你好'
+             }
+         }">
+            跳转
+		</router-link>
+```
+
+​			2、接收参数：
+
+```
+		在调用的组件中用 this.&route.query 获取
+		{{  }}  中不用写this
+		this.$route.query
+```
+
+### 		5、命名路由
+
+​				1、作用：当 router-link 中to属性中的 path 太长时，可以简化路由的跳转
+
+​				2、使用	
+
+​						①给路由命名：
+
+```js
+				{
+					path:'/demo',
+					compnent:Demo,
+					children:[
+						{
+							path:'test',
+							component:[
+								name:'hello'   // 给路由命名
+								path:'welcome',
+								component:Hello
+							]
+						}
+					]
+				}
+```
+
+​						②跳转简化：	
+
+```vue
+				<!-- 简化前，需要写完整的路径 -->
+				<router-link to="/demo/test/welcome">跳转</router-link>
+				
+				<!-- 简化后，直接通过名字跳转 -->
+				<router-link :to="{name:'hello'}">跳转</router-link>  // 就是简化路径书写to要注意: 并且要写成对象式
+
+				<!-- 简化写法配合传递query参数 -->
+				<router-link
+                       :to="{
+                             name:'hello',
+                            query:{
+                            	id=666,
+                            	title:'浦京'
+                            }
+                  }">
+                    跳转
+				</router-link>
+```
+
+
+
+### 	6、路由的params参数
+
+​			1、配置路由，声明接收params参数
+
+```js
+		{
+			path:'/home',
+			component:Home,
+			children:[
+				{
+					path:'news',
+					component:News
+				},
+				{
+					path:'message',
+					component:Message,
+					children:[
+						{
+							name:'xiangqing',
+							path:'detail/:id/:title',  // 使用占位符声明接收params参数
+							component:Detail
+						}
+					]
+				}
+			]
+		}
+```
+
+​			2、传递参数
+
+```vue
+		<!-- 跳转并携带params参数，to的字符串写法 -->
+		<router-link :to="home/message/detail/555/你好"> 跳转 </router-link>
+	
+		<!-- 跳转并携带params参数，to的对象写法 -->
+		<router-link 
+               :to="{
+                    name:'xiangqing',
+                    params:{
+                    	id:666,
+                    	title:'你好'
+                    }
+               }"   	   
+         > 跳转 </router-link>
+            
+```
+
+​						特别注意： 路由携带params参数时，若使用to的对象写法，则不能使用path配置项，必须使用name配置
+
+​									即使用对象写法必须先命名
+
+​			3、接收参数：
+
+​						```this.$route.params.id```     ```$route.params.title```
+
+
+
+### 	7、路由的props配置
+
+​				作用：让路由组件更方便的收到参数
+
+```js
+			{
+				name:'xiangqing',
+				path:'detail/:id',
+				component:Detail,
+				
+				// 第一种写法：props值为对象，该对象中所有的key-value的组合最终都会通过props传给Detail组件
+				// 缺点： 传递的是死数据
+				props:{a:900}
+				
+				// 第二种写法：props值为布尔值，布尔值为true，则把路由收到的所有params参数通过props传递给Detail组件
+				// 缺点，只能用于params
+				props:true
+				
+				// 第三种写法：props值为函数，该函数返回的对象中每一组key-value都会通过props传给Detail组件
+				// 优点：params和 query 都能用props接收，使用params时记得配置时使用占位符
+				props(router){
+					return {
+						id:$route.query.id
+						// 使用params时用 id:$route.params.id
+					}
+				}
+			}
+```
+
+​				注：记得在接收数据的组件用props接收
+
+​						==使用   query    和   params  时一定一定要确定props为函数时读取是用   ```$route.query   ``` 还是  ```  $route.params.id```==
+
+
+
+### 	8、 <router-link> 的replace属性
+
+​			1、作用： 控制路由跳转时操作浏览器历史记录的模式
+
+​			2、浏览器的历史记录有两种写入方式：分别为 ```push``` 和 ```replace```  , push 是追加历史记录，replace是替换当前记录，路由跳转时
+
+​						默认为push
+
+​					理解：栈结构即像子弹匣一样，push是往上堆历史记录，replace是替换当前的记录，
+
+​			3、如何开启replace模式： ``` <router-link replace  ....> News </router-link>```
+
+
+
+### 9、编程式路由导航
+
+​			1、作用：不借助 ``` <router-link>``` 实现路由跳转，让路由跳转更加灵活
+
+​			2、具体编码：
+
+```js
+			// $router 
+			this.$router.push({
+				name:'xiangqing',
+				params:{
+					id:xxx,
+					title:xxx
+				}
+			})
+			
+			this.$router.replace({
+				name:'xiangqing',
+				params:{
+					id:xxx,
+					title:xx
+				}
+			})
+
+			this.$router.forward()  // 前进
+			this.$router.back()  // 后退
+			this.$router.go(n)  传一个数字，正数表示前进n步，负数表示后退n步
+```
+
+
+
+### 10、缓存路由组件
+
+​			1、作用：让不展示的路由组件保持挂栽，不被销毁
+
+​			2、具体编码：,包裹最大的组件展示区，include不写表示所有组件，==写的是组件名==
+
+```vue
+		<keep-alive include='News'>
+			<router-link> </router-link>
+		<keep-alive>
+```
+
+​			3/多个组件要缓存用数组：  :include=“[ ‘News’, ‘Message’ ]”
+
+
+
+### 11、两个新的生命周期钩子
+
+​			1、作用：路由组件所独有的两个钩子，用于捕获路由组件的激活状态
+
+​			2、具体名字：
+
+​						1、 ```activated```  路由组件被激活时触发
+
+​						2、 ```deactivated```  路由组件失活时触发
+
+
+
+### 12、 路由守卫
+
+​		1、作用： 对路由进行权限控制
+
+​		2、分类：全局路由、独享路由、组件内路由
+
+​		3、全局路由：
+
+```js
+		// 全局前置路由：初始化时、每次路由切换前执行
+		router.beforeEach((to,from,next) => {
+			console.log('前置路由',to,from)
+			if(to.meta.isAuth){  // 判断当前路由是否需要权限认证 ,在路由的meta配置项中设置
+				if(localStorage.getItem('school') === 'atguigu' ){  // 进行权限控制的具体规则
+					next()  // 放行
+				}else{
+					alert('暂无权限查看')
+				}
+			}else{
+				next()  // 放行
+			}
+		})
+		
+		// 全局后置守卫，初始化时执行、每次路由切换后执行
+		router.afterEach((to,from) => {
+			console.log('后置理由',to,from)  // 没有next
+			if(to.meta.title){
+				document.title = to.meta.title
+			}else{
+				document.title = '硅谷商城' // 修改网页的title
+			}
+		})
+```
+
+​				==是否需要某某权限都在meta配置中设置，一般 isAuth 表示是否需要权限认证==
+
+​		4、独享守卫：在要设置独享路由的某个组件下设置beforeEnter 配置项
+
+```js
+		beforeEnter(to,from,next() => {
+			console.log('前置路由',to,from)
+			if(to.meta.isAuth){  // 判断当前路由是否需要权限认证 ,在路由的meta配置项中设置
+				if(localStorage.getItem('school') === 'atguigu' ){  // 进行权限控制的具体规则
+					next()  // 放行
+				}else{
+					alert('暂无权限查看')
+				}
+			}else{
+				next()  // 放行
+			}
+		})
+```
+
+​			5、组件内守卫
+
+```js
+		// 进入守卫：通过路由规则，进入该组件时调用
+		beforeRouteEnter(to,from,next){
+		
+		},
+		// 离开守卫：通过路由规则，离开该组件时被调用
+		beforeRouteLeave(to,from,next){
+		
+		}
+```
+
+
+
+### 13、路由器的两种工作模式
+
+​		1、对于一个url来说，什么时hash值？  ——  #以及后面的内容就是hash值
+
+​		2、hash值不会包含在HTTP请求中，即：hash值不会带给服务器
+
+​		3、hash模式：
+
+​					1、地址中永远带着 # 号。不美观
+
+​					2、若以后将地址通过第三方手机app分享，若app校验严格，则地址会被标记为不合法。
+
+​					3、兼容性较好
+
+​		4、 history模式：
+
+​					1、地址干净，美观
+
+​					2、兼容性和hash模式相比较差
+
+​					3、应用部署上线时需要后端人员支持，解决刷新页面服务端404的问题
+
+
+
+
+
+
+
+
+
+
 
