@@ -9,9 +9,9 @@
 
             <div class="left">
                 <div class="list-group">
-                    <router-link   class="list-group-item" active-class="active" :to="{name:'guanyu'}">About</router-link>
+                    <router-link class="list-group-item" active-class="active" :to="{name:'guanyu'}">About</router-link>
                     <div class="list-line"></div>
-                    <router-link  class="list-group-item" active-class="active" to="/home">Home</router-link>
+                    <router-link class="list-group-item" active-class="active" to="/home">Home</router-link>
                 </div>
 
                 <div class="coll">
